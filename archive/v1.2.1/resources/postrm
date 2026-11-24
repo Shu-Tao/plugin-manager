@@ -1,0 +1,10 @@
+#!/bin/sh
+set -e
+JB="/var/jb"
+if command -v uicache >/dev/null 2>&1; then
+    uicache -a >/dev/null 2>&1 || true
+elif [ -x "$JB/usr/bin/uicache" ]; then
+    "$JB/usr/bin/uicache" -a >/dev/null 2>&1 || true
+fi
+rm -rf "$JB/Library/Preferences/com.yg.pluginmanager.plist" 2>/dev/null || true
+exit 0

@@ -1,0 +1,11 @@
+Package: com.yg.pluginmanager
+Name: 插件管理
+Version: __VERSION__
+Architecture: iphoneos-arm64
+Description: 独立 App 形式的越狱插件管理器：列出所有注入型插件，逐项开关（重命名 dylib 与 Filter plist），并提供重启 SpringBoard（注销）与重启用户空间使改动生效。不内嵌于设置，不注入任何进程。
+Depends: firmware (>= 15.0)
+Section: Utilities
+Priority: optional
+Maintainer: YG
+Author: YG
+Installed-Size: 420

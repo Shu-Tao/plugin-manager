@@ -1,0 +1,53 @@
+#!/bin/sh
+# 安装后置：清理旧包、修复权限、刷新图标缓存
+set -e
+JB="/var/jb"
+APP="$JB/Applications/PluginManager.app"
+HELPER="$JB/usr/libexec/pluginmanager/pmhelper"
+OLD_PKG="com.yg.pluginmanager"
+
+# 包标识已从 com.yg 改为 com.shutao，dpkg 视作全新包。
+# 若旧包还在，先移除，避免桌面出现两个同名图标。
+if command -v dpkg >/dev/null 2>&1; then
+    DPKG=dpkg
+elif [ -x "$JB/usr/bin/dpkg" ]; then
+    DPKG="$JB/usr/bin/dpkg"
+fi
+
+if [ -n "$DPKG" ]; then
+    if "$DPKG" -s "$OLD_PKG" >/dev/null 2>&1; then
+        echo "检测到旧包 $OLD_PKG，正在移除..."
+        "$DPKG" -r --force-depends "$OLD_PKG" >/dev/null 2>&1 || true
+        echo "旧包已移除"
+    fi
+fi
+
+if [ -d "$APP" ]; then
+    chown -R root:wheel "$APP" 2>/dev/null || true
+    chmod 755 "$APP"
+    chmod 755 "$APP/PluginManager" 2>/dev/null || true
+    find "$APP" -type f -name "*.plist" -exec chmod 644 {} \; 2>/dev/null || true
+    find "$APP" -type f -name "*.png" -exec chmod 644 {} \; 2>/dev/null || true
+fi
+
+# 统一目录：助手与 App 都读写这两个绝对路径，属主给 mobile
+mkdir -p /var/mobile/Documents/PluginManager 2>/dev/null || true
+mkdir -p /var/mobile/Library/PluginManager 2>/dev/null || true
+chown -R mobile:mobile /var/mobile/Documents/PluginManager 2>/dev/null || true
+chown -R mobile:mobile /var/mobile/Library/PluginManager 2>/dev/null || true
+chmod 755 /var/mobile/Documents/PluginManager 2>/dev/null || true
+chmod 755 /var/mobile/Library/PluginManager 2>/dev/null || true
+
+if [ -f "$HELPER" ]; then
+    chown root:wheel "$HELPER" 2>/dev/null || true
+    chmod 4755 "$HELPER" || true
+fi
+
+# 刷新桌面缓存（uicache 存在才调）
+if command -v uicache >/dev/null 2>&1; then
+    uicache -p "$APP" >/dev/null 2>&1 || true
+elif [ -x "$JB/usr/bin/uicache" ]; then
+    "$JB/usr/bin/uicache" -p "$APP" >/dev/null 2>&1 || true
+fi
+
+exit 0

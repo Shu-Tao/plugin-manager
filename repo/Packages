@@ -1,0 +1,33 @@
+Package: com.shutao.pluginmanager
+Name: 插件管理
+Version: 1.5.5
+Architecture: iphoneos-arm64
+Description: 独立 App 形式的越狱插件管理器：列出所有注入型插件，逐项开关（重命名 dylib 与 Filter plist），并提供重启 SpringBoard（注销）与重启用户空间使改动生效。不内嵌于设置，不注入任何进程。
+Depends: firmware (>= 15.0)
+Section: Utilities
+Priority: optional
+Maintainer: YG
+Author: YG
+Installed-Size: 691
+Filename: ./com.shutao.pluginmanager_1.5.5_iphoneos-arm64.deb
+Size: 148144
+SHA256: a0eb2a0470d6a9224f8bf1a847aed7d0989abb57d6cc753035750c87eefb3400
+SHA1: 82eba7868bac3ecec49c39ba58fc641809841077
+MD5sum: 286ca49fee587b29b55cc8120e8cd16e
+
+Package: com.yg.pluginmanager
+Name: 插件管理
+Version: 1.2.3
+Architecture: iphoneos-arm64
+Description: 独立 App 形式的越狱插件管理器：列出所有注入型插件，逐项开关（重命名 dylib 与 Filter plist），并提供重启 SpringBoard（注销）与重启用户空间使改动生效。不内嵌于设置，不注入任何进程。
+Depends: firmware (>= 15.0)
+Section: Utilities
+Priority: optional
+Maintainer: YG
+Author: YG
+Installed-Size: 586
+Filename: ./com.yg.pluginmanager_1.2.3_iphoneos-arm64.deb
+Size: 122016
+SHA256: db1ebb8a21b40d55d28330cbd164d3c8b5e439028b5823552572475477ba635b
+SHA1: 55ccdee631822b107f93f3641c53e7311fb5d0e1
+MD5sum: 826913e2a1eea958083e24838e7ed22f

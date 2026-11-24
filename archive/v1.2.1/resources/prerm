@@ -1,0 +1,17 @@
+#!/bin/sh
+# 卸载前置：把改名禁用中的插件恢复原名，避免用户卸载管理器后插件残留为禁用态
+set -e
+JB="/var/jb"
+for dir in "$JB/usr/lib/TweakInject" "$JB/Library/MobileSubstrate/DynamicLibraries" \
+           "/usr/lib/TweakInject" "/Library/MobileSubstrate/DynamicLibraries"; do
+    [ -d "$dir" ] || continue
+    find "$dir" -maxdepth 1 -name "*.dylib.disabled" 2>/dev/null | while read -r f; do
+        base="${f%.disabled}"
+        [ -e "$base" ] || mv "$f" "$base" 2>/dev/null || true
+    done
+    find "$dir" -maxdepth 1 -name "*.plist.disabled" 2>/dev/null | while read -r f; do
+        base="${f%.disabled}"
+        [ -e "$base" ] || mv "$f" "$base" 2>/dev/null || true
+    done
+done
+exit 0
