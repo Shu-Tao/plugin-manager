@@ -232,8 +232,15 @@ static UIImage *PMFileIcon(NSString *name) {
         pinView.frame = CGRectMake(0, 0, 16, 16);
         cell.accessoryView = pinView;
     } else {
-        cell.accessoryView = nil;
-        cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
+        // 不用 AccessoryDisclosureIndicator：系统内置的 › 是 SF Symbol，
+        // 会在 CA::Transaction::commit 阶段触发 CoreImage 初始化并崩溃。
+        // 改用纯文字标签。
+        UILabel *arrow = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 20, 20)];
+        arrow.text = @"›";
+        arrow.font = [UIFont systemFontOfSize:20 weight:UIFontWeightRegular];
+        arrow.textColor = [PMTheme secondaryText];
+        arrow.textAlignment = NSTextAlignmentCenter;
+        cell.accessoryView = arrow;
     }
     return cell;
 }

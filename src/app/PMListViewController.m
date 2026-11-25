@@ -14,10 +14,10 @@ typedef NS_ENUM(NSInteger, PMSection) {
     PMSectionStatus = 2,
 };
 
-@interface PMListViewController () <UITableViewDataSource, UITableViewDelegate, UISearchResultsUpdating>
+@interface PMListViewController () <UITableViewDataSource, UITableViewDelegate, UITextFieldDelegate>
 @property (nonatomic, strong) UITableView *tableView;
 @property (nonatomic, strong) UIRefreshControl *refreshControl;
-@property (nonatomic, strong) UISearchController *searchController;
+@property (nonatomic, strong) UITextField *searchField;
 @property (nonatomic, strong) PMStore *store;
 
 @property (nonatomic, copy) NSArray<PMPluginItem *> *allVisible;   // 过滤后的全集
@@ -70,20 +70,40 @@ typedef NS_ENUM(NSInteger, PMSection) {
     [self.refreshControl addTarget:self action:@selector(handleRefresh) forControlEvents:UIControlEventValueChanged];
     self.tableView.refreshControl = self.refreshControl;
 
-    self.searchController = [[UISearchController alloc] initWithSearchResultsController:nil];
-    self.searchController.searchResultsUpdater = self;
-    self.searchController.obscuresBackgroundDuringPresentation = NO;
-    // 搜索期间不主动隐藏导航栏：否则激活搜索时会重排整棵树，
-    // 在长列表下容易触发内存压力被系统强杀。
-    self.searchController.hidesNavigationBarDuringPresentation = NO;
-    self.searchController.searchBar.placeholder = @"搜索插件名或用途";
-    self.searchController.searchBar.autocapitalizationType = UITextAutocapitalizationTypeNone;
-    self.searchController.searchBar.autocorrectionType = UITextAutocorrectionTypeNo;
-    self.navigationItem.searchController = self.searchController;
-    self.navigationItem.hidesSearchBarWhenScrolling = NO;
-    // 之前设为 YES，本控制器并不承担容器职责，
-    // 反而会让搜索激活时的呈现上下文错乱。改为 NO。
-    self.definesPresentationContext = NO;
+    // 不用 UISearchController。
+    // 崩溃日志证明 CUIShapeEffectStack sharedCIContext 在激活搜索时必然崩溃，
+    // 而 UISearchController 自带的放大镜与清除按钮都是 SF Symbol，
+    // 会在 CA::Transaction::commit 阶段由 UIKit 内部 UIImageView 渲染。
+    // 因此改为自绘 UITextField，全程不产生任何系统图标。
+    self.searchField = [[UITextField alloc] initWithFrame:CGRectMake(0, 0, 0, 42)];
+    self.searchField.backgroundColor = [UIColor secondarySystemGroupedBackgroundColor];
+    self.searchField.layer.cornerRadius = 10;
+    self.searchField.layer.cornerCurve = kCACornerCurveContinuous;
+    self.searchField.placeholder = @"搜索插件名或用途";
+    self.searchField.font = [UIFont systemFontOfSize:16];
+    self.searchField.clearButtonMode = UITextFieldViewModeNever;   // 清除按钮也是 SF Symbol
+    self.searchField.autocapitalizationType = UITextAutocapitalizationTypeNone;
+    self.searchField.autocorrectionType = UITextAutocorrectionTypeNo;
+    self.searchField.returnKeyType = UIReturnKeyDone;
+    self.searchField.delegate = self;
+    self.searchField.leftView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 12, 42)];
+    self.searchField.leftViewMode = UITextFieldViewModeAlways;
+    [self.searchField addTarget:self
+                         action:@selector(searchFieldChanged:)
+               forControlEvents:UIControlEventEditingChanged];
+    [self.searchField.heightAnchor constraintEqualToConstant:42].active = YES;
+
+    UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 0, 54)];
+    header.backgroundColor = [UIColor clearColor];
+    self.searchField.translatesAutoresizingMaskIntoConstraints = NO;
+    [header addSubview:self.searchField];
+    [NSLayoutConstraint activateConstraints:@[
+        [self.searchField.leadingAnchor constraintEqualToAnchor:header.leadingAnchor constant:16],
+        [self.searchField.trailingAnchor constraintEqualToAnchor:header.trailingAnchor constant:-16],
+        [self.searchField.topAnchor constraintEqualToAnchor:header.topAnchor constant:6],
+        [self.searchField.bottomAnchor constraintEqualToAnchor:header.bottomAnchor constant:-6],
+    ]];
+    self.tableView.tableHeaderView = header;
 
     // 用文字做图标：SF Symbol 会触发 CoreImage 的 GLContext 分配，
     // 内存不足时整进程崩溃（见 PMSharedSymbol 处的说明）。
@@ -412,8 +432,8 @@ typedef NS_ENUM(NSInteger, PMSection) {
 
 #pragma mark - 搜索（防抖，避免高频 reload 崩溃）
 
-- (void)updateSearchResultsForSearchController:(UISearchController *)searchController {
-    NSString *text = searchController.searchBar.text ?: @"";
+- (void)searchFieldChanged:(UITextField *)field {
+    NSString *text = field.text ?: @"";
     [self.searchDebounce invalidate];
 
     __weak typeof(self) weakSelf = self;
@@ -422,6 +442,11 @@ typedef NS_ENUM(NSInteger, PMSection) {
                                                             block:^(NSTimer *timer) {
         [weakSelf applySearchText:text];
     }];
+}
+
+- (BOOL)textFieldShouldReturn:(UITextField *)textField {
+    [textField resignFirstResponder];
+    return YES;
 }
 
 - (void)applySearchText:(NSString *)text {
