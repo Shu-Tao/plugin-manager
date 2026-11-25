@@ -229,30 +229,6 @@ if ((Test-Path $testC) -and (Test-Path $compatH)) {
             if ($procCode -ne 0) { Fail "进程操作单测未通过" }
             Write-Ok "进程操作单测通过"
         }
-
-        # 归档操作单测（文件管理功能的路径安全与参数校验）
-        $arTest = Join-Path $ProjectRoot 'tests\pmarachiveops_test.c'
-        $arSrc = Join-Path $ProjectRoot 'src\helper\PMArchiveOps.c'
-        if ((Test-Path $arTest) -and (Test-Path $arSrc)) {
-            $arExe = Join-Path $buildDir 'pmarachiveops_test.exe'
-            $arArgs = @('-std=c11','-O1','-Wno-everything',
-                        '-I', (Join-Path $ProjectRoot 'src\helper'),
-                        '-I', (Join-Path $ProjectRoot 'tests'),
-                        '-include', $compatH,
-                        $arTest, $arSrc, '-o', $arExe)
-            $arLog = & $hostClang @arArgs 2>&1
-            $arLog | Where-Object { $_ -match 'error:' } | Select-Object -First 8 |
-                ForEach-Object { Write-Host "      $_" -ForegroundColor Red }
-            if ($LASTEXITCODE -eq 0 -and (Test-Path $arExe)) {
-                $arOut = & $arExe 2>&1
-                $arCode = $LASTEXITCODE
-                $arOut | Where-Object { $_ -match 'FAIL|passed' } | ForEach-Object { Write-Note $_ }
-                if ($arCode -ne 0) { Fail "归档操作单测未通过" }
-                Write-Ok "归档操作单测通过"
-            } else {
-                Write-Note "归档单测编译跳过"
-            }
-        }
     } else {
         Write-Note "未找到宿主机 clang，跳过单测"
     }

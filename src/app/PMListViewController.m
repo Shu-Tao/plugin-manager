@@ -6,7 +6,6 @@
 #import "PMToast.h"
 #import "PMTheme.h"
 #import "PMActionSheet.h"
-#import "PMFileBrowserViewController.h"
 
 typedef NS_ENUM(NSInteger, PMSection) {
     PMSectionDisabled = 0,   // 未开启的放最上面
@@ -261,11 +260,6 @@ typedef NS_ENUM(NSInteger, PMSection) {
                                                 handler:^(UIAlertAction *a) { [weakSelf applyEnabled:NO toItems:weakSelf.allVisible]; }]];
     }
 
-    [sheet addAction:[UIAlertAction actionWithTitle:@"文件管理" style:UIAlertActionStyleDefault handler:^(UIAlertAction *a) {
-        PMFileBrowserViewController *browser = [PMFileBrowserViewController new];
-        [weakSelf.navigationController pushViewController:browser animated:YES];
-    }]];
-
     [sheet addAction:[UIAlertAction actionWithTitle:@"刷新列表" style:UIAlertActionStyleDefault handler:^(UIAlertAction *a) {
         [weakSelf reloadData];
     }]];
@@ -424,10 +418,7 @@ typedef NS_ENUM(NSInteger, PMSection) {
     PMPluginItem *item = [self itemAtIndexPath:indexPath];
     if (!item) return;
 
-    __weak typeof(self) weakSelf = self;
-    [PMActionSheet presentForPlugin:item from:self onRefresh:^{
-        [weakSelf reloadData];
-    }];
+    [PMActionSheet presentForPlugin:item from:self];
 }
 
 #pragma mark - 搜索（防抖，避免高频 reload 崩溃）
