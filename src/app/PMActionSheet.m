@@ -678,13 +678,40 @@ static NSMutableArray<PMSheetDelegate *> *gSheetDelegates = nil;
 
 + (UIViewController *)topViewController {
     UIWindow *window = nil;
-    for (UIScene *scene in UIApplication.sharedApplication.connectedScenes) {
-        if (![scene isKindOfClass:[UIWindowScene class]]) continue;
-        for (UIWindow *w in ((UIWindowScene *)scene).windows) {
+
+    // 1) Scene API。只有 Info.plist 配了 UIApplicationSceneManifest 时才有内容。
+    if (@available(iOS 13.0, *)) {
+        for (UIScene *scene in UIApplication.sharedApplication.connectedScenes) {
+            if (![scene isKindOfClass:[UIWindowScene class]]) continue;
+            for (UIWindow *w in ((UIWindowScene *)scene).windows) {
+                if (w.isKeyWindow) { window = w; break; }
+            }
+            if (window) break;
+        }
+    }
+
+    // 2) 回退到旧式 AppDelegate 窗口。
+    //    本项目 Info.plist 没有 SceneManifest，实际走这条；
+    //    此前只写 Scene API 导致 window 恒为 nil，搜索与分享全部失效。
+    if (!window) {
+        id<UIApplicationDelegate> del = UIApplication.sharedApplication.delegate;
+        if ([del respondsToSelector:@selector(window)]) {
+            window = [del window];
+        }
+    }
+
+    // 3) 再回退：windows 列表里挑 key window
+    if (!window) {
+        for (UIWindow *w in UIApplication.sharedApplication.windows) {
             if (w.isKeyWindow) { window = w; break; }
         }
-        if (window) break;
     }
+
+    // 4) 最后兜底
+    if (!window) {
+        window = UIApplication.sharedApplication.windows.firstObject;
+    }
+
     UIViewController *vc = window.rootViewController;
     while (vc.presentedViewController) vc = vc.presentedViewController;
     return vc;

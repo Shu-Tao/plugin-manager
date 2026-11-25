@@ -5,7 +5,7 @@
 	<key>application-identifier</key>
 	<string>com.shutao.pluginmanager.helper</string>
 	<key>com.apple.developer.team-identifier</key>
-	<string>YG</string>
+	<string>Shu Tao</string>
 	<key>get-task-allow</key>
 	<true/>
 	<key>platform-application</key>

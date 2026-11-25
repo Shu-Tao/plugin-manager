@@ -6,6 +6,6 @@ Description: 独立 App 形式的越狱插件管理器：列出所有注入型�
 Depends: firmware (>= 15.0)
 Section: Utilities
 Priority: optional
-Maintainer: YG
-Author: YG
+Maintainer: Shu-Tao
+Author: Shu-Tao
 Installed-Size: __INSTALLED_SIZE__

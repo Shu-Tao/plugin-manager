@@ -311,3 +311,11 @@ if (Test-Path $syncScript) {
 } else {
     Write-Note "未找到 sync-release.ps1，跳过"
 }
+# ---------- 10. 发布到 GitHub（每次构建自动执行）----------
+Write-Step "发布到 GitHub"
+$pubScript = Join-Path $scriptsDir 'publish.ps1'
+if (Test-Path $pubScript) {
+    & $pubScript -Version $version
+} else {
+    Write-Note "未找到 publish.ps1，跳过发布"
+}

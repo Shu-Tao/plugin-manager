@@ -101,7 +101,7 @@ $mime = @{
 function Send-Response {
     param($Stream, [int]$Status, [string]$StatusText, [byte[]]$Body, [string]$ContentType)
     $head = "HTTP/1.1 " + $Status + " " + $StatusText + "`r`n" +
-            "Server: YG-Local-Repo`r`n" +
+            "Server: Shutao-Repo`r`n" +
             "Content-Type: " + $ContentType + "`r`n" +
             "Content-Length: " + $Body.Length + "`r`n" +
             "Connection: close`r`n`r`n"

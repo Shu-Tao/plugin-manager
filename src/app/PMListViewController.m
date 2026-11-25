@@ -73,10 +73,17 @@ typedef NS_ENUM(NSInteger, PMSection) {
     self.searchController = [[UISearchController alloc] initWithSearchResultsController:nil];
     self.searchController.searchResultsUpdater = self;
     self.searchController.obscuresBackgroundDuringPresentation = NO;
+    // 搜索期间不主动隐藏导航栏：否则激活搜索时会重排整棵树，
+    // 在长列表下容易触发内存压力被系统强杀。
+    self.searchController.hidesNavigationBarDuringPresentation = NO;
     self.searchController.searchBar.placeholder = @"搜索插件名或用途";
+    self.searchController.searchBar.autocapitalizationType = UITextAutocapitalizationTypeNone;
+    self.searchController.searchBar.autocorrectionType = UITextAutocorrectionTypeNo;
     self.navigationItem.searchController = self.searchController;
     self.navigationItem.hidesSearchBarWhenScrolling = NO;
-    self.definesPresentationContext = YES;
+    // 之前设为 YES，本控制器并不承担容器职责，
+    // 反而会让搜索激活时的呈现上下文错乱。改为 NO。
+    self.definesPresentationContext = NO;
 
     self.menuButton = [[UIBarButtonItem alloc] initWithImage:[UIImage systemImageNamed:@"ellipsis.circle"]
                                                        style:UIBarButtonItemStylePlain

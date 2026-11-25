@@ -111,9 +111,9 @@ def main():
     open(os.path.join(REPO, "Packages.gz"), "wb").write(gzip.compress(raw))
     open(os.path.join(REPO, "Packages.bz2"), "wb").write(bz2.compress(raw))
     open(os.path.join(REPO, "Packages.xz"), "wb").write(lzma.compress(raw))
-    release = ("Origin: YG Local\nLabel: YG Local\nSuite: stable\n"
+    release = ("Origin: Shutao Repo\nLabel: 蜀洮的源\nSuite: stable\n"
                "Version: 1.0\nCodename: ios\nArchitectures: iphoneos-arm64\n"
-               "Components: main\nDescription: YG 本地插件源\n")
+               "Components: main\nDescription: 蜀洮自用的越狱插件源\n")
     open(os.path.join(REPO, "Release"), "wb").write(release.encode("utf-8"))
 
     print("repo: %s" % REPO)
