@@ -12,8 +12,10 @@ static UIImage *PMChevronImage(BOOL pointingUp) {
         UIImageSymbolConfiguration *cfg =
             [UIImageSymbolConfiguration configurationWithPointSize:9.0
                                                             weight:UIImageSymbolWeightBold];
-        downImage = [UIImage systemImageNamed:@"chevron.down" withConfiguration:cfg];
-        upImage   = [UIImage systemImageNamed:@"chevron.up" withConfiguration:cfg];
+        // 用文字箭头代替 SF Symbol，避免 CoreImage 的 GLContext 分配
+        downImage = nil;
+        upImage   = nil;
+        (void)cfg;
     });
     return pointingUp ? upImage : downImage;
 }
@@ -200,12 +202,11 @@ static const CGFloat kChevronToggleGap = 8.0;      // 与开关左缘的间距
 
 - (void)setChevronExpanded:(BOOL)expanded {
     if (!self.chevronButton) return;
-    // 共享静态图：不在这里创建位图，避免每个 cell 各占一份内存
-    UIImage *glyph = PMChevronImage(expanded);
-    if (glyph) {
-        [self.chevronButton setImage:glyph forState:UIControlStateNormal];
-    }
-    self.chevronButton.tintColor = expanded ? [PMTheme accent] : [PMTheme secondaryText];
+    // 用文字箭头，不碰 SF Symbol / 位图
+    [self.chevronButton setTitle:(expanded ? @"▼" : @"▶") forState:UIControlStateNormal];
+    [self.chevronButton setTitleColor:(expanded ? [PMTheme accent] : [PMTheme secondaryText])
+                              forState:UIControlStateNormal];
+    self.chevronButton.titleLabel.font = [UIFont systemFontOfSize:10 weight:UIFontWeightBold];
     self.chevronButton.accessibilityLabel = expanded ? @"收起详情" : @"展开详情";
 }
 

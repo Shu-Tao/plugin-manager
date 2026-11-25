@@ -4,17 +4,13 @@
 #import "PMTheme.h"
 #import "PMToast.h"
 
-/// 文件类型图标只有几种，全局缓存避免每行重复创建
+/// 文件类型图标不用 SF Symbol。
+/// SF Symbol 的着色走 -[UIImage _imageWithStylePresets:] -> CUIShapeEffectStack
+/// -> CIContext -> GLContext，内存不足时返回 NULL 上下文并跳转到地址 0 崩溃。
+/// 详见 PMActionSheet.m 中 PMSharedSymbol 的说明与崩溃报告。
 static UIImage *PMFileIcon(NSString *name) {
-    static NSMutableDictionary<NSString *, UIImage *> *cache = nil;
-    static dispatch_once_t once;
-    dispatch_once(&once, ^{ cache = [NSMutableDictionary dictionary]; });
-    if (name.length == 0) return nil;
-    UIImage *hit = cache[name];
-    if (hit) return hit;
-    UIImage *img = [UIImage systemImageNamed:name];
-    if (img) cache[name] = img;
-    return img;
+    (void)name;
+    return nil;
 }
 
 @interface PMFileBrowserViewController () <UITableViewDataSource, UITableViewDelegate>
@@ -193,16 +189,12 @@ static UIImage *PMFileIcon(NSString *name) {
 
     if ([row[@"dir"] boolValue]) {
         cfg.secondaryText = [NSString stringWithFormat:@"文件夹 · %@ 项 · %@", row[@"count"], when];
-        cfg.image = PMFileIcon(@"folder");
     } else {
         cfg.secondaryText = [NSString stringWithFormat:@"%.1f KB · %@",
                              [row[@"size"] doubleValue] / 1024.0, when];
-        NSString *name = row[@"name"];
-        if ([name hasSuffix:@".deb"]) cfg.image = PMFileIcon(@"shippingbox");
-        else if ([name hasSuffix:@".zip"]) cfg.image = PMFileIcon(@"archivebox");
-        else if ([name hasSuffix:@".dylib"]) cfg.image = PMFileIcon(@"cpu");
-        else cfg.image = PMFileIcon(@"doc");
     }
+    // 图标用文字前缀代替：SF Symbol 走 CoreImage，内存不足会崩（见崩溃报告）
+    cfg.image = nil;
     // 复用前清掉残留的 accessory 与背景，避免串行
     cell.accessoryView = nil;
     cell.accessoryType = UITableViewCellAccessoryNone;
@@ -214,10 +206,8 @@ static UIImage *PMFileIcon(NSString *name) {
     if (self.selecting) {
         BOOL picked = [self.selectedPaths containsObject:row[@"path"]];
 
-        cfg.image = [UIImage systemImageNamed:(picked ? @"checkmark.circle.fill" : @"circle")];
-        cfg.imageProperties.tintColor = picked ? [PMTheme accent] : [PMTheme secondaryText];
-        cfg.imageProperties.reservedLayoutSize = CGSizeMake(28, 28);
-        cfg.imageProperties.maximumSize = CGSizeMake(24, 24);
+        // 勾选态用文字前缀 + 背景色 + 右侧对勾 + 字重，全程不碰 SF Symbol
+        cfg.text = [NSString stringWithFormat:@"%@ %@", (picked ? @"✓" : @"○"), row[@"name"] ?: @""];
 
         if (picked) {
             cfg.textProperties.font = [UIFont systemFontOfSize:17 weight:UIFontWeightSemibold];

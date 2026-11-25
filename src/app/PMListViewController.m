@@ -85,7 +85,9 @@ typedef NS_ENUM(NSInteger, PMSection) {
     // 反而会让搜索激活时的呈现上下文错乱。改为 NO。
     self.definesPresentationContext = NO;
 
-    self.menuButton = [[UIBarButtonItem alloc] initWithImage:[UIImage systemImageNamed:@"ellipsis.circle"]
+    // 用文字做图标：SF Symbol 会触发 CoreImage 的 GLContext 分配，
+    // 内存不足时整进程崩溃（见 PMSharedSymbol 处的说明）。
+    self.menuButton = [[UIBarButtonItem alloc] initWithTitle:@"⋯"
                                                        style:UIBarButtonItemStylePlain
                                                       target:self
                                                       action:@selector(showActionMenu)];

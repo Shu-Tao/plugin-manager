@@ -6,15 +6,17 @@
 /// 符号图标全局缓存：同一 symbol 只创建一次，避免每个按钮各建一份位图
 /// （启动/渲染期反复创建位图会触发内存耗尽，见 1.2.3 修复说明）
 static UIImage *PMSharedSymbol(NSString *name) {
-    static NSMutableDictionary<NSString *, UIImage *> *cache = nil;
-    static dispatch_once_t once;
-    dispatch_once(&once, ^{ cache = [NSMutableDictionary dictionary]; });
-    if (name.length == 0) return nil;
-    UIImage *hit = cache[name];
-    if (hit) return hit;
-    UIImage *img = [UIImage systemImageNamed:name];
-    if (img) cache[name] = img;
-    return img;
+    // 图标一律不用 SF Symbol。
+    // 崩溃报告 PluginManager-2026-11-25-091042.ips 证明这条链路必然崩溃：
+    //   UIImageView 渲染 SF Symbol
+    //     -> -[UIImage _imageWithStylePresets:tintColor:traitCollection:]
+    //     -> +[CUIShapeEffectStack sharedCIContext]   (dispatch_once 单例)
+    //     -> CI::GLContext::GLContext(...)            申请 GL 内存
+    //     -> pmap_enter 失败 (resource shortage)
+    //     -> 返回 NULL -> pc = 0x0 -> SIGSEGV
+    // 单例全进程只建一次，首次失败即必崩；越狱下插件抢占内存极易触发。
+    (void)name;
+    return nil;
 }
 
 // ---------------------------------------------------------------------------
